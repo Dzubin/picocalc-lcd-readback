@@ -135,3 +135,7 @@ screenshot/reload round trip (`screentest`) and a full 320x320
 number — see `CLAUDE.md`, which also has the full story of two real bugs
 (one in `fat32.c`, one in this project's own `lcd_readback.c`) found
 getting `fullscreenshot` working.
+
+## License
+
+MIT, see `LICENSE`. The vendored drivers from `picocalc-text-starter` by Blair Leduc keep their own license (see the `LICENSE` file that comes with them).
