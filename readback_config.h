@@ -4,7 +4,7 @@
  *
  * Everything here is either a test-program setting (region size, test
  * counts) or a hardware constant for the RAMRD read path, most of them
- * now confirmed on real RP2040 hardware (2026-09-28, via the `solid` +
+ * now confirmed on real RP2040 hardware (via the `solid` +
  * `rawbytes` commands: fill a rectangle with one exact colour, then dump
  * the raw RAMRD bytes with no interpretation and read the pattern off by
  * eye) rather than taken from the ST7365P datasheet, which turned out to
@@ -87,7 +87,7 @@
  * LCD row is fine for a small rectangle, but for a full 320x320
  * screenshot (~300KB) each row's I/O call gets slower than the last, and
  * the whole thing took several minutes with no on-screen feedback in the
- * meantime (Thomas, 2026-09-28) -- easily mistaken for a hang. Batching
+ * meantime, so it is easily mistaken for a hang. Batching
  * BMP_IO_BATCH_ROWS rows into one call cuts the NUMBER of calls (and so
  * the total chain-walk cost) by roughly that factor, while still never
  * holding anywhere near a full image in RAM: at most

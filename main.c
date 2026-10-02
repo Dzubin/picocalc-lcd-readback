@@ -101,9 +101,8 @@ static void readline(char *buffer, size_t size)
 }
 
 /* ===================================================================== */
-/*  Tiny xorshift32 PRNG for the random test pixels (same small generator */
-/*  the platformer project uses, for the same reason: no float, no       */
-/*  hardware-RNG dependency).                                             */
+/*  Tiny xorshift32 PRNG for the random test pixels (a small generator    */
+/*  with no float and no hardware-RNG dependency).                        */
 /* ===================================================================== */
 
 static uint32_t rng_state;

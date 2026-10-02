@@ -1,8 +1,7 @@
 /*
  * lcd_readback.h - lcd_unblit(): the read-side mirror of lcd_blit()
  * (drivers/lcd.c, by Blair Leduc). Implemented as a separate file so the
- * vendored picocalc-text-starter-main/ tree stays untouched (its own
- * CLAUDE.md rule, carried over from the platformer project).  Everything
+ * vendored picocalc-text-starter-main/ tree stays untouched.  Everything
  * here is built purely on lcd.h's already-public pins, command macros and
  * lcd_write_cmd()/lcd_write_data(), plus hardware/spi.h directly for the
  * one piece lcd.h doesn't expose: driving a read cycle.

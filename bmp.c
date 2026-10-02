@@ -8,7 +8,7 @@
  * even with packing attributes, and this way there's nothing to get
  * subtly wrong.
  *
- * The LCD side works ONE ROW AT A TIME (Thomas, 2026-09-28): never a
+ * The LCD side works ONE ROW AT A TIME: never a
  * whole WIDTH x HEIGHT pixel buffer in RAM, which for the PicoCalc's full
  * 320x320 screen would be 320*320*2 = 200KB, more than half the RP2040's
  * total 264KB of SRAM. The SD card side batches BMP_IO_BATCH_ROWS rows

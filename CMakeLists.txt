@@ -63,8 +63,8 @@ add_executable(picocalc-lcd-readback
 pico_set_program_name(picocalc-lcd-readback "picocalc-lcd-readback")
 pico_set_program_version(picocalc-lcd-readback "0.1")
 
-# audio.c needs its PIO program's generated header (audio.pio.h) -- pulled
-# in transitively through picocalc_init(), same as picocalc-platformer.
+# audio.c needs its PIO program's generated header (audio.pio.h), pulled
+# in transitively through picocalc_init().
 pico_generate_pio_header(picocalc-lcd-readback ${STARTER}/drivers/audio.pio)
 
 # No serial console needed; keep USB free so ~ -> BOOTSEL is clean, and so
