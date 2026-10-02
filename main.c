@@ -6,7 +6,7 @@
  *
  * Runs as a REPL over the picocalc-text-starter console (picocalc_init(),
  * same as picocalc-text-starter-main/main.c by Blair Leduc), so prompts
- * and results are just printf()/getchar() -- the pixel test rectangle is
+ * and results are just printf()/getchar(); the pixel test rectangle is
  * drawn well below the console's text rows so the two never overlap.
  *
  * Author: Thomas Dzubin
@@ -29,7 +29,7 @@
 #include "readback_config.h"
 
 /* keyboard.c and audio.c (picocalc-text-starter-main/drivers/) both refer
- * to this as `extern volatile bool user_interrupt` -- a Ctrl+C-style flag
+ * to this as `extern volatile bool user_interrupt`; a Ctrl+C-style flag
  * normally defined by the starter's own commands.c, which this project
  * doesn't build (see CMakeLists.txt). This tool has no long-running
  * command to interrupt, so it's just provided and never set. */
@@ -179,7 +179,7 @@ static void cmd_help(void)
     printf("  solid x y w h rrggbb   fill a rectangle with one exact RGB565 colour\n");
     printf("                         (rrggbb: 5-6-5 bit fields packed into 4 hex digits)\n");
     printf("  rawbytes x y w h n     write nothing; dump n raw RAMRD bytes as hex, with\n");
-    printf("                         NO dummy-byte skip or RGB565 repacking -- for\n");
+    printf("                         NO dummy-byte skip or RGB565 repacking; for\n");
     printf("                         figuring out the real on-wire byte layout\n");
     printf("  bootsel                reboot into BOOTSEL (USB drive) mode\n");
     printf("  exit (or quit)         leave for the PicoCalc UF2 Loader menu\n");
@@ -189,7 +189,7 @@ static void cmd_help(void)
     printf("  screentest x y w h destx desty\n");
     printf("                         round-trip test: screenshot (x,y,w,h) to SD,\n");
     printf("                         close it, reopen it, and display it at\n");
-    printf("                         (destx,desty) -- max %dx%d\n", BMP_RECT_MAX_W, BMP_RECT_MAX_H);
+    printf("                         (destx,desty); max %dx%d\n", BMP_RECT_MAX_W, BMP_RECT_MAX_H);
     printf("  fullscreenshot          picocalc_screenshot(): the WHOLE %dx%d screen to\n",
            WIDTH, HEIGHT);
     printf("                         SD, one LCD row at a time (no big RAM buffer)\n");
@@ -217,7 +217,7 @@ static bool run_one_test(uint16_t x, uint16_t y, uint16_t width, uint16_t height
     uint16_t *readback = malloc(n * sizeof(uint16_t));
     if (!written || !readback)
     {
-        printf("Out of memory for a %ux%u rectangle -- try something smaller.\n", width, height);
+        printf("Out of memory for a %ux%u rectangle; try something smaller.\n", width, height);
         free(written);
         free(readback);
         return false;
@@ -358,7 +358,7 @@ static void cmd_pattern(void)
             mismatches++;
 
     if (mismatches == 0)
-        printf("PASS  pattern matched (%u pixels). Left on screen -- go take your photo.\n", (unsigned)n);
+        printf("PASS  pattern matched (%u pixels). Left on screen; go take your photo.\n", (unsigned)n);
     else
         printf("FAIL  %u of %u pixels differ. Pattern is still on screen either way.\n",
                (unsigned)mismatches, (unsigned)n);
@@ -368,8 +368,8 @@ static void cmd_pattern(void)
 }
 
 /* Reads an arbitrary rectangle (no write first) and dumps it as hex, so a
- * region that was never touched by this tool -- e.g. console text, or
- * whatever was on screen already -- can be inspected too. */
+ * region that was never touched by this tool; e.g. console text, or
+ * whatever was on screen already; can be inspected too. */
 static void cmd_raw(const char *args)
 {
     int x, y, w, h;
@@ -407,7 +407,7 @@ static void cmd_raw(const char *args)
     free(readback);
 }
 
-/* Fills a rectangle with one exact RGB565 colour, no randomness -- a
+/* Fills a rectangle with one exact RGB565 colour, no randomness; a
  * controlled reference pixel for `rawbytes` to read back over. */
 static void cmd_solid(const char *args)
 {
@@ -440,8 +440,8 @@ static void cmd_solid(const char *args)
     free(fill);
 }
 
-/* Reads n raw RAMRD bytes back from a window, completely unprocessed --
- * no dummy-byte skip, no RGB565 repacking -- so the real on-wire layout
+/* Reads n raw RAMRD bytes back from a window, completely unprocessed;
+ * no dummy-byte skip, no RGB565 repacking; so the real on-wire layout
  * can be read directly off the dump instead of guessed at. Pair with
  * `solid` first: a known, unchanging colour over several pixels makes it
  * obvious where any dummy byte ends and where the per-pixel byte pattern
@@ -533,7 +533,7 @@ static void cmd_loadbmp(const char *args)
 
 /* The round-trip test Thomas asked for: screenshot a rectangle to SD,
  * close the file, reopen it, and display it back at a different
- * rectangle -- proving bmp_save_screenshot()/bmp_load_and_blit() (and so
+ * rectangle; proving bmp_save_screenshot()/bmp_load_and_blit() (and so
  * the SD card path end to end) work, not just lcd_unblit() on its own. */
 static void cmd_screentest(const char *args)
 {
@@ -592,7 +592,7 @@ static void cmd_fullscreenshot(void)
         print_bmp_error("Full screenshot", r);
 }
 
-/* SD card presence, mount status, volume name and free space -- so a
+/* SD card presence, mount status, volume name and free space; so a
  * screenshot failure can be told apart from "no card inserted" without
  * guessing. */
 static void cmd_sdstatus(void)

@@ -18,13 +18,13 @@
  * in the same row-major order lcd_blit() writes them in, into `pixels`
  * (caller-owned, width * height uint16_t entries). See readback_config.h
  * for the RAMRD protocol details this is built from, confirmed on real
- * hardware: a dummy byte, then two bytes per pixel, big-endian RGB565 --
+ * hardware: a dummy byte, then two bytes per pixel, big-endian RGB565;
  * the same format lcd_blit() writes, byte for byte.
  *
  * Slower than lcd_blit(): the SPI bus is dropped to LCD_READ_BAUDRATE for
  * the read (see readback_config.h for why) and restored to LCD_BAUDRATE
  * before returning. Call with interrupts already however the caller wants
- * them -- unlike lcd_blit(), this does not touch them itself, since it is
+ * them; unlike lcd_blit(), this does not touch them itself, since it is
  * meant to be called from straight-line test-program code, not from
  * inside the display driver's own critical sections.
  */

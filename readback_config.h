@@ -14,7 +14,7 @@
  *
  *   - With COLMOD set to 16-bit/pixel (LCD_CMD_COLMOD, 0x55, same as
  *     lcd_init() always uses), RAMRD reads pixels back in that same
- *     16-bit RGB565 format lcd_blit() writes them in -- two bytes per
+ *     16-bit RGB565 format lcd_blit() writes them in; two bytes per
  *     pixel, big-endian, byte-for-byte identical to what was written. NOT
  *     the 18-bit/three-bytes-per-pixel frame-memory format an earlier,
  *     wrong reading of the datasheet assumed (that version read every
@@ -27,7 +27,7 @@
  *     dummy byte with no pixel data in it (confirmed by the same
  *     `rawbytes` dump: one odd byte, then the real, repeating pixel
  *     pattern starts immediately after).
- *   - LCD_READ_BAUDRATE is still an UNCONFIRMED conservative guess -- the
+ *   - LCD_READ_BAUDRATE is still an UNCONFIRMED conservative guess; the
  *     `solid`/`rawbytes` round above happened to work at this speed, but
  *     that only proves 1MHz is safe, not that it's necessary. Try raising
  *     it and re-running `test` to see how far it actually goes.
@@ -68,9 +68,9 @@
  * unlikely to ever matter with a 16-bit random suffix, but it's a loop,
  * so it needs a bound). */
 #define BMP_NAME_MAX_RETRIES     20
-/* bmp.c streams a screenshot one LCD row at a time -- never a whole
+/* bmp.c streams a screenshot one LCD row at a time; never a whole
  * WIDTH x HEIGHT pixel buffer in RAM (320x320x2 = 200KB, more than half
- * the RP2040's total SRAM) -- so these just need to cover the real
+ * the RP2040's total SRAM); so these just need to cover the real
  * screen, not stay small the way TEST_RECT_MAX_W/H (used by the other
  * commands, which DO hold a full rectangle in RAM) have to. 320 matches
  * the PicoCalc's WIDTH/HEIGHT (lcd.h); written as a literal, not derived
@@ -80,7 +80,7 @@
 #define BMP_RECT_MAX_H  320
 
 /* fat32_write()/fat32_read() (fat32.c, by Blair Leduc) walk the file's
- * ENTIRE cluster chain from the start on EVERY call -- confirmed by
+ * ENTIRE cluster chain from the start on EVERY call; confirmed by
  * reading their source: both start from file->start_cluster and step
  * forward file->position / bytes_per_cluster times, discarding whatever
  * cluster they found last call. One fat32_write()/fat32_read() call per
@@ -98,7 +98,7 @@
 #define BMP_IO_BATCH_ROWS  16
 
 /* ---- BMP file format constants (BITMAPFILEHEADER/BITMAPINFOHEADER,     */
-/* uncompressed 24-bit BI_RGB -- see bmp.c) ------------------------------ */
+/* uncompressed 24-bit BI_RGB; see bmp.c) ------------------------------ */
 #define BMP_FILE_HEADER_SIZE     14
 #define BMP_INFO_HEADER_SIZE     40
 #define BMP_HEADER_SIZE          (BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE)

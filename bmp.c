@@ -1,6 +1,6 @@
 /*
  * bmp.c - see bmp.h. Reads/writes plain, uncompressed 24-bit BMP files
- * (BITMAPFILEHEADER + BITMAPINFOHEADER, BI_RGB, bottom-up row order --
+ * (BITMAPFILEHEADER + BITMAPINFOHEADER, BI_RGB, bottom-up row order;
  * the ordinary, most widely compatible BMP shape) by hand, a byte at a
  * time via little-endian put/get helpers, rather than an
  * __attribute__((packed)) struct overlaid on the file bytes: on-disk
@@ -12,8 +12,8 @@
  * whole WIDTH x HEIGHT pixel buffer in RAM, which for the PicoCalc's full
  * 320x320 screen would be 320*320*2 = 200KB, more than half the RP2040's
  * total 264KB of SRAM. The SD card side batches BMP_IO_BATCH_ROWS rows
- * into each fat32_read()/fat32_write() call instead of one row at a time
- * -- see readback_config.h's comment on BMP_IO_BATCH_ROWS for why a
+ * into each fat32_read()/fat32_write() call instead of one row at a time;
+ * see readback_config.h's comment on BMP_IO_BATCH_ROWS for why a
  * batch of rows, not the single row the LCD side uses, turned out to be
  * necessary there too: fat32.c's own read/write calls get slower as a
  * file grows, badly enough that doing them one small row at a time made
@@ -37,13 +37,13 @@
 #include "lcd_readback.h"
 #include "readback_config.h"
 
-/* One LCD row's worth of pixels, RGB565 -- the unit lcd_unblit()/
+/* One LCD row's worth of pixels, RGB565; the unit lcd_unblit()/
  * lcd_blit() work in. */
 static uint16_t pixel_row[BMP_RECT_MAX_W];
 
 /* Up to BMP_IO_BATCH_ROWS rows' worth of on-disk bytes (BGR888, each row
  * followed immediately by its own padding, exactly as the file itself
- * lays them out) -- the unit fat32_write()/fat32_read() work in. Both
+ * lays them out); the unit fat32_write()/fat32_read() work in. Both
  * static for the same reason lcd_readback.c's own row buffer is: bounded,
  * small, and not worth a fresh allocation per call. */
 static uint8_t io_batch[BMP_IO_BATCH_ROWS * (BMP_RECT_MAX_W * BMP_BYTES_PER_PIXEL + 3)];
@@ -51,10 +51,10 @@ static uint8_t io_batch[BMP_IO_BATCH_ROWS * (BMP_RECT_MAX_W * BMP_BYTES_PER_PIXE
 /* The most recent fat32_error_t behind a BMP_ERROR_FS result, so a
  * caller that wants more detail than the generic bmp_error_string() can
  * ask for it, without bmp.c needing an error-message-formatting API of
- * its own. (bmp.c does print its own "." progress dots per I/O batch --
+ * its own. (bmp.c does print its own "." progress dots per I/O batch;
  * see BMP_IO_BATCH_ROWS's comment in readback_config.h for why a
  * multi-second-plus operation with literally no feedback turned out to
- * be worth avoiding -- but never an error message; that's still the
+ * be worth avoiding; but never an error message; that's still the
  * caller's job.) */
 static fat32_error_t last_fs_error = FAT32_OK;
 
@@ -103,7 +103,7 @@ static inline void rgb565_to_bgr888(uint16_t px, uint8_t *out)
     uint8_t r5 = (uint8_t)((px >> 11) & 0x1F);
     uint8_t g6 = (uint8_t)((px >> 5) & 0x3F);
     uint8_t b5 = (uint8_t)(px & 0x1F);
-    /* Replicate the top bits into the newly widened low bits -- the
+    /* Replicate the top bits into the newly widened low bits; the
      * ordinary "expand N bits to 8 evenly" trick. */
     out[0] = (uint8_t)((b5 << 3) | (b5 >> 2));   /* B */
     out[1] = (uint8_t)((g6 << 2) | (g6 >> 4));   /* G */

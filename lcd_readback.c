@@ -22,7 +22,7 @@ static uint8_t read_row[WIDTH * LCD_READ_BYTES_PER_PIXEL];
 
 /* Sets the read window (CASET/RASET, same as lcd_blit()'s own private
  * lcd_set_window()) and sends RAMRD, leaving CSX low and D/CX high so the
- * caller can read data bytes immediately -- shared by lcd_unblit() and
+ * caller can read data bytes immediately; shared by lcd_unblit() and
  * lcd_unblit_raw(). Also drops the SPI bus to LCD_READ_BAUDRATE; restoring
  * it and raising CSX again is the caller's job once the read is done. See
  * lcd_unblit()'s own comment for why RAMRD can't go through the existing

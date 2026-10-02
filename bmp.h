@@ -47,9 +47,9 @@ const char *bmp_last_fs_error_string(void);
 bmp_result_t bmp_save_screenshot(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
                                   char *filename_out, size_t filename_out_size);
 
-/* Screenshots the WHOLE PicoCalc screen (WIDTH x HEIGHT, lcd.h -- 320x320
+/* Screenshots the WHOLE PicoCalc screen (WIDTH x HEIGHT, lcd.h; 320x320
  * on real hardware) to a new SCRNxxxx.BMP file. A thin wrapper around
- * bmp_save_screenshot(0, 0, WIDTH, HEIGHT, ...) -- safe to call because
+ * bmp_save_screenshot(0, 0, WIDTH, HEIGHT, ...); safe to call because
  * that function (like bmp_load_and_blit() below) reads/writes one LCD
  * row at a time and never holds the whole screen in RAM at once (320x320
  * pixels would be 200KB, more than half the RP2040's total SRAM). */

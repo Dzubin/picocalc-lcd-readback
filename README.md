@@ -40,13 +40,13 @@ pattern                  draw a visible checkerboard, verify it, leave it
                          on screen for a photo
 raw x y w h              read back a rectangle and dump it as hex (no write)
 solid x y w h rrggbb     fill a rectangle with one exact RGB565 colour
-rawbytes x y w h n       dump n raw RAMRD bytes, no interpretation --
+rawbytes x y w h n       dump n raw RAMRD bytes, no interpretation;
                          for figuring out an on-wire byte layout by hand
 screenshot x y w h       save a rectangle to SD as SCRNxxxx.BMP
 loadbmp file x y         load a BMP from SD and display it at (x,y)
 screentest x y w h destx desty
                          round trip: screenshot to SD, close it, reopen
-                         it, display it elsewhere -- proves the whole
+                         it, display it elsewhere; proves the whole
                          save/load path works, not just lcd_unblit()
 fullscreenshot           picocalc_screenshot(): the whole screen to SD
 sdstatus                 SD card presence, mount status, free space
