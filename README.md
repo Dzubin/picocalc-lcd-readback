@@ -7,19 +7,18 @@ data back **off** the LCD, not just write to it?
 
 `picocalc-text-starter` (by Blair Leduc) only ever writes to the ST7365P
 controller's frame memory (`lcd_blit()`). This project adds the missing
-other half, `lcd_unblit()`, a small console test tool to prove it
+other half, `lcd_unblit()` (now also in the starter itself), a small console test tool to prove it
 actually reads back what was written, and — built on top of that — a
 screenshot-to-SD-card feature: save a rectangle, or the whole screen, as
 a BMP file, and load one back.
 
 ## What's here
 
-- **`lcd_readback.c`/`.h`** — `lcd_unblit()`, the read-side mirror of
-  `lcd_blit()`. Built entirely on `lcd.h`'s existing public pins, command
-  macros, and `lcd_write_cmd()`/`lcd_write_data()`, plus `hardware/spi.h`
-  directly for the one thing the vendored driver doesn't expose: driving a
-  read cycle (RAMRD, `0x2E`). The vendored `picocalc-text-starter-main/`
-  tree itself is untouched.
+- **`lcd_readback.c`/`.h`** — `lcd_unblit_raw()`, a debug helper that runs the
+  same read cycle as `lcd_unblit()` (RAMRD, `0x2E`) and hands back the raw bytes
+  with no interpretation. `lcd_unblit()` itself, the read-side mirror of
+  `lcd_blit()`, began in this project and is in the starter's `drivers/lcd.c`
+  now ([#31](https://github.com/BlairLeduc/picocalc-text-starter/pull/31)); this program uses that one.
 - **`bmp.c`/`.h`** — screenshots to SD card: `bmp_save_screenshot()`/
   `picocalc_screenshot()` (the whole screen) write an uncompressed 24-bit
   BMP; `bmp_load_and_blit()` reads one back and displays it. Both read
@@ -139,3 +138,31 @@ getting `fullscreenshot` working.
 ## License
 
 MIT, see `LICENSE`. The vendored drivers from `picocalc-text-starter` by Blair Leduc keep their own license (see the `LICENSE` file that comes with them).
+
+The vendored copy is Blair Leduc's `picocalc-text-starter` as it was on 2026-10-18
+(commit `85a002e`, "Upgrade to SDK 2.3.1"), with **four small local fixes** that
+are not in his repository yet:
+
+1. In `picocalc-text-starter-main/drivers/fat32.c`, `fat32_write()` no longer walks
+   the cluster chain, allocating a cluster at a cluster-aligned end of file, before
+   it allocates the clusters the write needs. That walk could leave a cluster
+   unreachable (a leak). A write of zero bytes returns at once.
+2. In the same file, `fat32_dir_read()` copies the last part of a long file name of
+   248 to 255 characters as far as it fits; upstream drops that part.
+3. In `picocalc-text-starter-main/drivers/sdcard.c`, a command is not sent to a card
+   that is still busy after the 0.5 s wait.
+4. In `picocalc-text-starter-main/drivers/lcd.c`, `lcd_putstr()` cuts a string off at
+   the right edge of the display, because the line buffer holds exactly one row of
+   text.
+
+Earlier versions of this copy carried other local changes, and those are now in
+the upstream code: the search-hint fix in `get_next_free_cluster()`
+([#30](https://github.com/BlairLeduc/picocalc-text-starter/pull/30)), the
+deleted-entry fixes in `fat32_dir_read()` and `link_entry()`
+([#32](https://github.com/BlairLeduc/picocalc-text-starter/pull/32)), the timed
+busy-card wait in `sdcard.c`
+([#33](https://github.com/BlairLeduc/picocalc-text-starter/pull/33)) and
+`lcd_unblit()` ([#31](https://github.com/BlairLeduc/picocalc-text-starter/pull/31)).
+`audio.pio` is exactly as downloaded: it now accepts 20 to 20000 Hz
+([#29](https://github.com/BlairLeduc/picocalc-text-starter/pull/29)), where it used
+to accept only 100 to 2000 Hz. Everything else is exactly as downloaded.

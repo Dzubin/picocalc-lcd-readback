@@ -1,8 +1,8 @@
 # PicoCalc LCD Readback Test (by Thomas Dzubin)
 #
-# A small console tool that checks lcd_unblit() (this project's own
-# addition, lcd_readback.c) against lcd_blit(), both from
-# picocalc-text-starter-main/drivers/lcd.c by Blair Leduc. Runs the
+# A small console tool that checks lcd_unblit() against lcd_blit(), both from
+# picocalc-text-starter-main/drivers/lcd.c by Blair Leduc (lcd_unblit() began
+# in this project; lcd_readback.c keeps lcd_unblit_raw()). Runs the
 # starter's own console stack (picocalc_init()), so it needs the same
 # driver set the starter's own main.c does, minus the starter's demo REPL
 # (main.c/commands.c/songs.c/tests.c) and serial.c (unused by anything
@@ -20,9 +20,9 @@ if(WIN32)
 else()
     set(USERHOME $ENV{HOME})
 endif()
-set(sdkVersion 2.2.0)
+set(sdkVersion 2.3.1)
 set(toolchainVersion 14_2_Rel1)
-set(picotoolVersion 2.2.0)
+set(picotoolVersion 2.3.1)
 set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})

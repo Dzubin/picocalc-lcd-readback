@@ -35,8 +35,9 @@
 #pragma once
 
 /* ---- Read-path SPI speed --------------------------------------------- */
-/* Restored to LCD_BAUDRATE (lcd.h) after every read. */
-#define LCD_READ_BAUDRATE     1000000u   /* 1 MHz: works; untested how much higher can go */
+/* LCD_READ_BAUDRATE (1 MHz: works; untested how much higher can go) is
+ * defined in the starter's lcd.h, and the bus goes back to LCD_BAUDRATE after
+ * every read. */
 
 /* ---- RAMRD protocol shape --------------------------------------------- */
 #define LCD_READ_DUMMY_BYTES      1   /* discarded before the first real pixel */
