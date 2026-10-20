@@ -1,5 +1,5 @@
 /*
- * picocalc-lcd-readback - a small console tool to check that lcd_unblit()
+ * picocalc-screenshot - a small console tool to check that lcd_unblit()
  * (see lcd_readback.c) really reads back what lcd_blit() wrote: write a
  * rectangle of pixels to the ST7365P's frame memory, read the same
  * rectangle back over SPI, and compare, pixel for pixel.
@@ -26,7 +26,9 @@
 #include "sdcard.h"   /* sd_card_present() */
 #include "fat32.h"    /* fat32_get_status()/_volume_name()/_free_space()/... */
 #include "bmp.h"
+#include "screenshot.h"
 #include "readback_config.h"
+#include "screenshot_const.h"   /* SHOT_BATCH_ROWS, for the progress text */
 
 /* keyboard.c and audio.c (picocalc-text-starter-main/drivers/) both refer
  * to this as `extern volatile bool user_interrupt`; a Ctrl+C-style flag
@@ -56,7 +58,7 @@ int main(void)
     stdio_init_all();
     picocalc_init();
 
-    printf("\033c\033[1mpicocalc-lcd-readback\033[0m\n");
+    printf("\033c\033[1mpicocalc-screenshot\033[0m\n");
     printf("Checks lcd_unblit() (RAMRD readback) against lcd_blit() (RAMWR).\n");
     printf("Type \033[4mhelp\033[0m for a list of commands.\n\n");
 
@@ -189,22 +191,51 @@ static void cmd_help(void)
     printf("  screentest x y w h destx desty\n");
     printf("                         round-trip test: screenshot (x,y,w,h) to SD,\n");
     printf("                         close it, reopen it, and display it at\n");
-    printf("                         (destx,desty); max %dx%d\n", BMP_RECT_MAX_W, BMP_RECT_MAX_H);
-    printf("  fullscreenshot          picocalc_screenshot(): the WHOLE %dx%d screen to\n",
-           WIDTH, HEIGHT);
-    printf("                         SD, one LCD row at a time (no big RAM buffer)\n");
+    printf("                         (destx,desty)\n");
+    printf("  fullscreenshot         the WHOLE %dx%d screen to SD, a few LCD\n", WIDTH, HEIGHT);
+    printf("                         rows at a time (no big RAM buffer)\n");
     printf("  sdstatus               SD card presence, mount status, free space\n");
     printf("  help              this text\n");
 }
 
-/* Prints a BMP_ERROR_FS result with the underlying fat32_error_t detail;
- * every other bmp_result_t is self-explanatory from bmp_error_string(). */
+/* Prints a failed result with the fat32 detail when the file system was to blame. */
+static void print_shot_error(const char *what, shot_result_t r)
+{
+    if (r == SHOT_ERROR_FS)
+        printf("%s FAILED: %s (%s)\n", what, screenshot_error_string(r),
+               fat32_error_string(screenshot_fs_error()));
+    else
+        printf("%s FAILED: %s\n", what, screenshot_error_string(r));
+}
+
 static void print_bmp_error(const char *what, bmp_result_t r)
 {
     if (r == BMP_ERROR_FS)
-        printf("%s FAILED: %s (%s)\n", what, bmp_error_string(r), bmp_last_fs_error_string());
+        printf("%s FAILED: %s (%s)\n", what, bmp_error_string(r),
+               fat32_error_string(bmp_last_fs_error()));
     else
         printf("%s FAILED: %s\n", what, bmp_error_string(r));
+}
+
+static void show_progress(void)
+{
+    putchar('.');
+}
+
+/* Saves a rectangle under a random SCRNxxxx.BMP name, trying another name when
+ * one is taken. screenshot_save() leaves the choice of name to the caller. */
+static shot_result_t take_screenshot(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
+                                     char *name, size_t name_size)
+{
+    shot_result_t r = SHOT_ERROR_EXISTS;
+
+    for (int tries = 0; tries < BMP_NAME_MAX_RETRIES && r == SHOT_ERROR_EXISTS; tries++)
+    {
+        snprintf(name, name_size, SHOT_NAME_FORMAT, (unsigned)(rand_u32() & SHOT_NAME_MASK));
+        r = screenshot_save(name, x, y, w, h, show_progress);
+    }
+    printf("\n");
+    return r;
 }
 
 /* Writes a width x height block of random RGB565 pixels at (x, y), reads
@@ -490,21 +521,19 @@ static void cmd_screenshot(const char *args)
         printf("Usage: screenshot x y width height\n");
         return;
     }
-    if (x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > WIDTH || y + h > HEIGHT ||
-        w > BMP_RECT_MAX_W || h > BMP_RECT_MAX_H)
+    if (x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > WIDTH || y + h > HEIGHT)
     {
-        printf("Rectangle out of range (screen is %dx%d, max %dx%d per screenshot).\n",
-               WIDTH, HEIGHT, BMP_RECT_MAX_W, BMP_RECT_MAX_H);
+        printf("Rectangle out of range (screen is %dx%d).\n", WIDTH, HEIGHT);
         return;
     }
 
     char name[BMP_FILENAME_LEN];
-    bmp_result_t r = bmp_save_screenshot((uint16_t)x, (uint16_t)y, (uint16_t)w, (uint16_t)h,
-                                          name, sizeof(name));
-    if (r == BMP_OK)
+    shot_result_t r = take_screenshot((uint16_t)x, (uint16_t)y, (uint16_t)w, (uint16_t)h,
+                                      name, sizeof(name));
+    if (r == SHOT_OK)
         printf("Saved (%d,%d) %dx%d as %s\n", x, y, w, h, name);
     else
-        print_bmp_error("Screenshot", r);
+        print_shot_error("Screenshot", r);
 }
 
 /* Loads a BMP from the SD card and displays it at (x, y); see bmp.c. */
@@ -533,7 +562,7 @@ static void cmd_loadbmp(const char *args)
 
 /* The round-trip test Thomas asked for: screenshot a rectangle to SD,
  * close the file, reopen it, and display it back at a different
- * rectangle; proving bmp_save_screenshot()/bmp_load_and_blit() (and so
+ * rectangle; proving screenshot_save()/bmp_load_and_blit() (and so
  * the SD card path end to end) work, not just lcd_unblit() on its own. */
 static void cmd_screentest(const char *args)
 {
@@ -543,10 +572,9 @@ static void cmd_screentest(const char *args)
         printf("Usage: screentest x y width height destx desty\n");
         return;
     }
-    if (x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > WIDTH || y + h > HEIGHT ||
-        w > BMP_RECT_MAX_W || h > BMP_RECT_MAX_H)
+    if (x < 0 || y < 0 || w <= 0 || h <= 0 || x + w > WIDTH || y + h > HEIGHT)
     {
-        printf("Source rectangle out of range (max %dx%d).\n", BMP_RECT_MAX_W, BMP_RECT_MAX_H);
+        printf("Source rectangle out of range.\n");
         return;
     }
     if (dx < 0 || dy < 0 || dx + w > WIDTH || dy + h > HEIGHT)
@@ -556,18 +584,18 @@ static void cmd_screentest(const char *args)
     }
 
     char name[BMP_FILENAME_LEN];
-    bmp_result_t r = bmp_save_screenshot((uint16_t)x, (uint16_t)y, (uint16_t)w, (uint16_t)h,
-                                          name, sizeof(name));
-    if (r != BMP_OK)
+    shot_result_t sr = take_screenshot((uint16_t)x, (uint16_t)y, (uint16_t)w, (uint16_t)h,
+                                       name, sizeof(name));
+    if (sr != SHOT_OK)
     {
-        print_bmp_error("Screenshot", r);
+        print_shot_error("Screenshot", sr);
         return;
     }
     printf("Saved (%d,%d) %dx%d to %s. Reopening and displaying at (%d,%d)...\n",
            x, y, w, h, name, dx, dy);
 
     uint16_t rw, rh;
-    r = bmp_load_and_blit(name, (uint16_t)dx, (uint16_t)dy, &rw, &rh);
+    bmp_result_t r = bmp_load_and_blit(name, (uint16_t)dx, (uint16_t)dy, &rw, &rh);
     if (r == BMP_OK)
         printf("PASS  round trip through %s: %ux%u now showing at (%d,%d).\n",
                name, rw, rh, dx, dy);
@@ -575,21 +603,19 @@ static void cmd_screentest(const char *args)
         print_bmp_error("Load-back", r);
 }
 
-/* Exercises picocalc_screenshot() (bmp.c) directly, rather than going
- * through cmd_screenshot()'s parameterized rectangle: a full WIDTHxHEIGHT
- * capture, one LCD row at a time, with no whole-screen buffer in RAM. */
+/* A full WIDTH x HEIGHT capture, timed. */
 static void cmd_fullscreenshot(void)
 {
     char name[BMP_FILENAME_LEN];
-    printf("Capturing (each . is %d rows written to SD)...\n", BMP_IO_BATCH_ROWS);
+    printf("Capturing (each . is %d rows written to SD)...\n", SHOT_BATCH_ROWS);
     absolute_time_t t0 = get_absolute_time();
-    bmp_result_t r = picocalc_screenshot(name, sizeof(name));
+    shot_result_t r = take_screenshot(0, 0, WIDTH, HEIGHT, name, sizeof(name));
     int64_t elapsed_ms = absolute_time_diff_us(t0, get_absolute_time()) / 1000;
 
-    if (r == BMP_OK)
+    if (r == SHOT_OK)
         printf("Saved full %dx%d screen as %s in %lld ms\n", WIDTH, HEIGHT, name, (long long)elapsed_ms);
     else
-        print_bmp_error("Full screenshot", r);
+        print_shot_error("Full screenshot", r);
 }
 
 /* SD card presence, mount status, volume name and free space; so a

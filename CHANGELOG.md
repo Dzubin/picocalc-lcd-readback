@@ -1,9 +1,23 @@
 # Changelog
 
-All notable changes to PicoCalc LCD Readback.
+All notable changes to PicoCalc Screenshot.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
+
+- The project is renamed from picocalc-lcd-readback to picocalc-screenshot: the folder, the
+  CMake project, the program banner and the output files (`screenshot-RP2040.uf2` and
+  `screenshot-RP2350.uf2`).
+
+- Screenshot saving is its own small module for other programs to take:
+  `screenshot.c`, `screenshot.h` and `screenshot_const.h`, replacing
+  `bmp_save_screenshot()` and `picocalc_screenshot()`. The caller chooses the file
+  name, nothing is printed, no clock or random numbers are used, and the file is a
+  top-down BMP. The work buffers shrank from about 16 KB to about 4 KB. The README
+  lists exactly which starter functions it uses and gives step by step instructions
+  for adding it to another program.
+- `bmp.c` keeps only loading a BMP back (the test program), and checks that the
+  picture fits on the screen at the chosen position.
 
 - Updated the vendored `picocalc-text-starter` to Blair Leduc's code of 2026-10-18 (commit
   `85a002e`) and moved to Pico SDK 2.3.1. The search-hint, deleted-entry and busy-card fixes this
@@ -22,8 +36,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 - Build outputs are named without the `picocalc-` prefix, since the chip at the
-  end of the name already says what they are for: `lcd-readback-RP2040.uf2` and
-  `lcd-readback-RP2350.uf2`.
+  end of the name already says what they are for: `screenshot-RP2040.uf2` and
+  `screenshot-RP2350.uf2`.
 - Leaving: a new `exit` (or `quit`) console command leaves for the PicoCalc UF2
   Loader menu. It asks the loader for its menu through the watchdog scratch
   registers (constants in `readback_config.h`); with no loader installed the

@@ -59,50 +59,22 @@
  * left on screen afterward so it can be photographed. */
 #define PATTERN_CELL_PX          8
 
-/* ---- Screenshot-to-SD-card (bmp.c) ------------------------------------ */
-/* SCRNxxxx.BMP: 4 random uppercase hex digits. "SCRN" + 4 hex + ".BMP" +
- * a null terminator = 13 bytes; a little headroom in case a future
- * naming scheme needs more. */
+/* ---- Screenshot names and loading a BMP back (main.c, bmp.c) ---------- */
+/* The test program names its screenshots SCRNxxxx.BMP, xxxx four random hex
+ * digits: "SCRN" + 4 + ".BMP" + the null is 13 bytes. screenshot.c itself
+ * takes any name the caller gives it. */
+#define SHOT_NAME_FORMAT         "SCRN%04X.BMP"
+#define SHOT_NAME_MASK           0xFFFFu
 #define BMP_FILENAME_LEN         16
-/* How many random names bmp_save_screenshot() will try before giving up
- * if it keeps landing on a file that already exists (astronomically
- * unlikely to ever matter with a 16-bit random suffix, but it's a loop,
- * so it needs a bound). */
+/* Random names tried before giving up when each one is already taken. */
 #define BMP_NAME_MAX_RETRIES     20
-/* bmp.c streams a screenshot one LCD row at a time; never a whole
- * WIDTH x HEIGHT pixel buffer in RAM (320x320x2 = 200KB, more than half
- * the RP2040's total SRAM); so these just need to cover the real
- * screen, not stay small the way TEST_RECT_MAX_W/H (used by the other
- * commands, which DO hold a full rectangle in RAM) have to. 320 matches
- * the PicoCalc's WIDTH/HEIGHT (lcd.h); written as a literal, not derived
- * from WIDTH/HEIGHT, so this header doesn't have to assume lcd.h was
- * already included first. */
-#define BMP_RECT_MAX_W  320
-#define BMP_RECT_MAX_H  320
 
-/* fat32_write()/fat32_read() (fat32.c, by Blair Leduc) walk the file's
- * ENTIRE cluster chain from the start on EVERY call; confirmed by
- * reading their source: both start from file->start_cluster and step
- * forward file->position / bytes_per_cluster times, discarding whatever
- * cluster they found last call. One fat32_write()/fat32_read() call per
- * LCD row is fine for a small rectangle, but for a full 320x320
- * screenshot (~300KB) each row's I/O call gets slower than the last, and
- * the whole thing took several minutes with no on-screen feedback in the
- * meantime, so it is easily mistaken for a hang. Batching
- * BMP_IO_BATCH_ROWS rows into one call cuts the NUMBER of calls (and so
- * the total chain-walk cost) by roughly that factor, while still never
- * holding anywhere near a full image in RAM: at most
- * BMP_IO_BATCH_ROWS * (BMP_RECT_MAX_W*BMP_BYTES_PER_PIXEL + 3) bytes, a
- * small fixed buffer regardless of how tall the screenshot actually is.
- * Raise it for more speed at some more RAM; lower it if RAM gets tight
- * elsewhere. */
-#define BMP_IO_BATCH_ROWS  16
+/* Rows read from the card per fat32_read() call when loading a BMP. */
+#define BMP_IO_BATCH_ROWS        4
 
-/* ---- BMP file format constants (BITMAPFILEHEADER/BITMAPINFOHEADER,     */
-/* uncompressed 24-bit BI_RGB; see bmp.c) ------------------------------ */
-#define BMP_FILE_HEADER_SIZE     14
-#define BMP_INFO_HEADER_SIZE     40
-#define BMP_HEADER_SIZE          (BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE)
+/* The part of the BMP header that bmp.c reads: both headers together, the
+ * bits per pixel it accepts, and the "no compression" value. */
+#define BMP_HEADER_SIZE          54
 #define BMP_BITS_PER_PIXEL       24
 #define BMP_BYTES_PER_PIXEL      3
 #define BMP_COMPRESSION_BI_RGB   0
